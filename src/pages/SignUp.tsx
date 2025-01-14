@@ -1,127 +1,97 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
-interface UserData {
-  name: string;
-  email: string;
-  location: string;
-  username: string;
-}
-
-export default function SignUp() {
+const SignUp = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [formData, setFormData] = useState<UserData>({
+  const [formData, setFormData] = useState({
     name: "",
     email: "",
     location: "",
     username: "",
+    password: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!formData.email.includes("@") || !formData.email.includes(".")) {
+    if (!formData.name || !formData.email || !formData.location || !formData.username || !formData.password) {
       toast({
-        variant: "destructive",
-        title: "Invalid email",
-        description: "Please enter a valid email address",
-      });
-      return;
-    }
-
-    if (Object.values(formData).some(value => !value)) {
-      toast({
-        variant: "destructive",
-        title: "Missing fields",
+        title: "Error",
         description: "Please fill in all fields",
+        variant: "destructive",
       });
       return;
     }
 
-    // Store in localStorage
     localStorage.setItem("userData", JSON.stringify(formData));
-    
     toast({
-      title: "Success!",
-      description: "Your account has been created. Please log in.",
+      title: "Success",
+      description: "Account created successfully!",
     });
-
-    // Redirect to login
     navigate("/login");
   };
 
   return (
-    <div className="min-h-screen pt-20 px-4">
-      <div className="max-w-md mx-auto glass-card p-8 rounded-lg">
-        <h1 className="text-2xl font-bold mb-6 text-center">Create Account</h1>
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-8 glass-card p-8 animate-fadeIn">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-primary">Sign Up</h2>
+          <p className="mt-2 text-muted-foreground">Create your account</p>
+        </div>
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          <div className="space-y-4">
             <Input
-              id="name"
               name="name"
               type="text"
-              placeholder="John Doe"
+              placeholder="Full Name"
               value={formData.name}
               onChange={handleChange}
               className="bg-secondary"
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
             <Input
-              id="email"
               name="email"
               type="email"
-              placeholder="john@example.com"
+              placeholder="Email"
               value={formData.email}
               onChange={handleChange}
               className="bg-secondary"
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
             <Input
-              id="location"
               name="location"
               type="text"
-              placeholder="New York, US"
+              placeholder="Location"
               value={formData.location}
               onChange={handleChange}
               className="bg-secondary"
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
             <Input
-              id="username"
               name="username"
               type="text"
-              placeholder="johndoe123"
+              placeholder="Username"
               value={formData.username}
               onChange={handleChange}
               className="bg-secondary"
             />
+            <Input
+              name="password"
+              type="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              className="bg-secondary"
+            />
           </div>
-
           <Button type="submit" className="w-full">
             Sign Up
           </Button>
@@ -129,4 +99,6 @@ export default function SignUp() {
       </div>
     </div>
   );
-}
+};
+
+export default SignUp;

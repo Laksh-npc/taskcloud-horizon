@@ -1,126 +1,107 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
 
-export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    rememberMe: false,
+  });
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const storedData = localStorage.getItem("userData");
     
-    // Get users from localStorage
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-    const user = users.find((u: any) => u.email === email);
+    if (!storedData) {
+      toast({
+        title: "Error",
+        description: "No user found. Please sign up first.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    if (user) {
-      // In a real app, you would hash the password before comparing
-      if (user.password === password) {
-        if (rememberMe) {
-          localStorage.setItem("currentUser", JSON.stringify(user));
-        }
-        
-        toast({
-          title: "Success!",
-          description: "You have successfully logged in.",
-        });
-        
-        navigate("/tasks");
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Invalid password. Please try again.",
-        });
+    const userData = JSON.parse(storedData);
+    
+    if (userData.email === formData.email && userData.password === formData.password) {
+      if (formData.rememberMe) {
+        localStorage.setItem("session", JSON.stringify({ email: formData.email }));
       }
+      toast({
+        title: "Success",
+        description: "Logged in successfully!",
+      });
+      navigate("/tasks");
     } else {
       toast({
-        variant: "destructive",
         title: "Error",
-        description: "No user found with this email.",
+        description: "Invalid email or password",
+        variant: "destructive",
       });
     }
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-green-900 border-green-500">
-        <CardHeader>
-          <CardTitle className="text-2xl text-white">Welcome Back!</CardTitle>
-          <CardDescription className="text-green-300">
-            Enter your credentials to access your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-white">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="bg-black border-green-500 text-white"
-                placeholder="Enter your email"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">
-                Password
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="bg-black border-green-500 text-white"
-                placeholder="Enter your password"
-              />
-            </div>
-
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-8 glass-card p-8 animate-fadeIn">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-primary">Login</h2>
+          <p className="mt-2 text-muted-foreground">Welcome back!</p>
+        </div>
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          <div className="space-y-4">
+            <Input
+              name="email"
+              type="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={handleChange}
+              className="bg-secondary"
+            />
+            <Input
+              name="password"
+              type="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              className="bg-secondary"
+            />
             <div className="flex items-center space-x-2">
               <Checkbox
-                id="remember"
-                checked={rememberMe}
-                onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                className="border-green-500 data-[state=checked]:bg-green-500"
+                id="rememberMe"
+                checked={formData.rememberMe}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, rememberMe: checked as boolean })
+                }
               />
-              <Label
-                htmlFor="remember"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white"
+              <label
+                htmlFor="rememberMe"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 Remember me
-              </Label>
+              </label>
             </div>
-
-            <Button
-              type="submit"
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
-            >
-              Log In
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          </div>
+          <Button type="submit" className="w-full">
+            Login
+          </Button>
+        </form>
+      </div>
     </div>
   );
-}
+};
+
+export default Login;
